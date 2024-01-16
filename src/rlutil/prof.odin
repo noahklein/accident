@@ -15,6 +15,11 @@ profile_deinit :: proc()          { delete(profiles) }
 
 profile_get :: proc(label: string) -> Profile { return profiles[label] }
 
+profile_duration :: proc(label: string) -> f32 {
+    prof := profile_get(label)
+    return f32(time.stopwatch_duration(prof.stopwatch))
+}
+
 @(deferred_in=profile_end)
 profile_begin :: proc(label: string) -> bool {
     if label not_in profiles {
