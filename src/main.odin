@@ -1,11 +1,11 @@
 package main
 
 import "core:fmt"
-import "core:math/linalg"
 import "core:mem"
 
 import rl "vendor:raylib"
 
+import "game"
 import "ngui"
 import "rlutil"
 
@@ -48,7 +48,7 @@ main :: proc() {
         rl.ClearBackground(rl.BLACK)
     rl.EndDrawing()
 
-    camera = rl.Camera2D{ zoom = 1.5, offset = rlutil.screen_size() / 2 }
+    camera = rl.Camera2D{ zoom = 10, offset = rlutil.screen_size() / 2 }
 
     ngui.init()
     defer ngui.deinit()
@@ -56,11 +56,16 @@ main :: proc() {
     rlutil.profile_init(2)
     defer rlutil.profile_deinit()
 
+    game.curve = { 0, 5, 8, {13, -5} }
+
      for !rl.WindowShouldClose() {
         defer free_all(context.temp_allocator)
 
+        dt := rl.GetFrameTime() * timescale
+        cursor := rl.GetScreenToWorld2D(rl.GetMousePosition(), camera)
 
         if rlutil.profile_begin("update") {
+            game.update(dt, cursor)
         }
 
         rlutil.profile_begin("draw")
@@ -69,6 +74,7 @@ main :: proc() {
         rl.ClearBackground(rl.BLACK)
 
         rl.BeginMode2D(camera)
+            game.draw(cursor)
         rl.EndMode2D()
 
         draw_gui(&camera)
