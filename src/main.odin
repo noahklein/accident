@@ -56,7 +56,8 @@ main :: proc() {
     rlutil.profile_init(2)
     defer rlutil.profile_deinit()
 
-    game.curve = { 0, 5, 8, {13, -5} }
+    game.init()
+    defer game.deinit()
 
      for !rl.WindowShouldClose() {
         defer free_all(context.temp_allocator)
