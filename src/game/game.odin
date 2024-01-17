@@ -6,6 +6,7 @@ import rl "vendor:raylib"
 import b2 "../odin-box2d"
 
 import "../rlutil"
+import "../ngui"
 
 DT :: 1.0 / 60.0
 
@@ -22,13 +23,21 @@ init :: proc() {
     world_def.gravity = {0, 10}
     world.id = b2.create_world(&world_def)
 
-    ground_body_def := b2.DEFAULT_BODY_DEF
-    ground_body_def.position = b2.Vec2{0, 10}
-    ground_body_id := b2.create_body(world.id, &ground_body_def)
+    create_wall :: proc(pos, size: rl.Vector2) -> (b2.Body_ID, b2.Shape_ID) {
+        body_def := b2.DEFAULT_BODY_DEF
+        body_def.position = pos
+        body_id := b2.create_body(world.id, &body_def)
 
-    ground_box := b2.make_box(50, 10)
-    ground_shape_def := b2.DEFAULT_SHAPE_DEF
-    b2.create_polygon_shape(ground_body_id, &ground_shape_def, &ground_box)
+        box := b2.make_box(size.x, size.y)
+        shape_def := b2.DEFAULT_SHAPE_DEF
+        shape_id := b2.create_polygon_shape(body_id, &shape_def, &box)
+        return body_id, shape_id
+    }
+
+    create_wall({0, 40}, {50, 10})
+    create_wall({-60, -50}, {10, 100})
+    create_wall({60, -50}, {10, 100})
+
 }
 
 deinit :: proc() {
@@ -37,14 +46,14 @@ deinit :: proc() {
 }
 
 update :: proc(dt: f32, cursor: rl.Vector2) {
-    if rl.IsMouseButtonPressed(.LEFT) {
+    // if rl.IsMouseButtonPressed(.LEFT) {
+    if !ngui.want_mouse() && rl.IsMouseButtonDown(.LEFT) {
         body_def := b2.DEFAULT_BODY_DEF
         body_def.type = .Dynamic
         body_def.position = cursor
         body_id := b2.create_body(world.id, &body_def)
 
         shape := b2.DEFAULT_SHAPE_DEF
-        shape.density = 1
         shape.friction = 0.3
         circle := b2.Circle{ radius = 1 }
 
@@ -64,7 +73,9 @@ fixed_update :: proc(cursor: rl.Vector2) {
 }
 
 draw :: proc(cursor: rl.Vector2) {
-    b2.world_draw(world.id, &debug_draw)
+    when ODIN_DEBUG {
+        b2.world_draw(world.id, &debug_draw)
+    }
 }
 
 debug_draw := b2.Debug_Draw{

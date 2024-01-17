@@ -45,7 +45,7 @@ main :: proc() {
 
     // Before we do anything, clear the screen to avoid transparent windows.
     rl.BeginDrawing()
-        rl.ClearBackground(rl.BLACK)
+        rl.ClearBackground(rl.GRAY)
     rl.EndDrawing()
 
     camera = rl.Camera2D{ zoom = 10, offset = rlutil.screen_size() / 2 }
@@ -72,7 +72,7 @@ main :: proc() {
         rlutil.profile_begin("draw")
         rl.BeginDrawing()
         defer rl.EndDrawing()
-        rl.ClearBackground(rl.BLACK)
+        rl.ClearBackground(rl.GRAY)
 
         rl.BeginMode2D(camera)
             game.draw(cursor)
