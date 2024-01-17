@@ -27,7 +27,7 @@ draw_gui :: proc(camera: ^rl.Camera2D) {
         }
 
         if ngui.flex_row({1}) {
-            if ngui.graph_begin("Time", 256, lower = 0, upper = f32(time.Second) / 120) {
+            if ngui.graph_begin("Time", 256, lower = 0, upper = f32(time.Second) / 60) {
                 ngui.graph_line("Update", rlutil.profile_duration("update"), rl.SKYBLUE)
                 ngui.graph_line("Draw", rlutil.profile_duration("draw"), rl.RED)
             }

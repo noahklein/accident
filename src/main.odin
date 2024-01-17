@@ -72,7 +72,7 @@ main :: proc() {
         rlutil.profile_begin("draw")
         rl.BeginDrawing()
         defer rl.EndDrawing()
-        rl.ClearBackground(rl.GRAY)
+        rl.ClearBackground(rl.LIGHTGRAY)
 
         rl.BeginMode2D(camera)
             game.draw(cursor)

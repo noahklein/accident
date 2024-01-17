@@ -1,7 +1,9 @@
 package game
 
 import "core:math/linalg"
+import "core:slice"
 import "core:runtime"
+
 import rl "vendor:raylib"
 import b2 "../odin-box2d"
 
@@ -91,13 +93,15 @@ debug_draw := b2.Debug_Draw{
 
 draw_polygon :: proc "c" (vertices: [^]b2.Vec2, vertex_count: i32, color: b2.Color, context_: rawptr) {
     context = runtime.default_context()
-
     rlutil.DrawPolygonLines(vertices[:vertex_count], b2_color_to_rl(color))
 }
 
 draw_solid_polygon :: proc "c" (vertices: [^]b2.Vec2, vertex_count: i32, color: b2.Color, context_: rawptr) {
     context = runtime.default_context()
-    rlutil.DrawPolygonLines(vertices[:vertex_count], b2_color_to_rl(color))
+
+    verts := vertices[:vertex_count]
+    slice.reverse(verts) // Vertices need to be in counter-clockwise order.
+    rlutil.draw_polygon(verts, b2_color_to_rl(color))
 }
 
 draw_circle :: proc "c" (center: b2.Vec2, radius: f32, color: b2.Color, context_: rawptr) {
