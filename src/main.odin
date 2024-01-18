@@ -2,12 +2,13 @@ package main
 
 import "core:fmt"
 import "core:mem"
+import "core:math/linalg"
 
 import rl "vendor:raylib"
 
-import "game"
 import "ngui"
 import "rlutil"
+import "field"
 
 camera: rl.Camera2D
 timescale: f32 = 1
@@ -38,7 +39,7 @@ main :: proc() {
 
     rl.SetTraceLogLevel(.ALL if ODIN_DEBUG else .WARNING)
     rl.SetConfigFlags({.VSYNC_HINT})
-    rl.InitWindow(1600, 900, "Bullets")
+    rl.InitWindow(1600, 900, "Farm")
     defer rl.CloseWindow()
 
     rl.rlEnableSmoothLines()
@@ -48,7 +49,7 @@ main :: proc() {
         rl.ClearBackground(rl.GRAY)
     rl.EndDrawing()
 
-    camera = rl.Camera2D{ zoom = 10, offset = rlutil.screen_size() / 2 }
+    camera = rl.Camera2D{ zoom = 1, offset = rlutil.screen_size() / 2 }
 
     ngui.init()
     defer ngui.deinit()
@@ -56,8 +57,8 @@ main :: proc() {
     rlutil.profile_init(2)
     defer rlutil.profile_deinit()
 
-    game.init()
-    defer game.deinit()
+    field.init()
+    defer field.deinit()
 
      for !rl.WindowShouldClose() {
         defer free_all(context.temp_allocator)
@@ -66,16 +67,16 @@ main :: proc() {
         cursor := rl.GetScreenToWorld2D(rl.GetMousePosition(), camera)
 
         if rlutil.profile_begin("update") {
-            game.update(dt, cursor)
+            field.update(dt, cursor)
         }
 
         rlutil.profile_begin("draw")
         rl.BeginDrawing()
         defer rl.EndDrawing()
-        rl.ClearBackground(rl.LIGHTGRAY)
+        rl.ClearBackground(rl.BROWN)
 
         rl.BeginMode2D(camera)
-            game.draw(cursor)
+            field.draw()
         rl.EndMode2D()
 
         draw_gui(&camera)
