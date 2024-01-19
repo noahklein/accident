@@ -1,7 +1,9 @@
 package field
 
 import "core:math/linalg"
+import "core:math/rand"
 import rl "vendor:raylib"
+
 import "../ngui"
 
 field: Field
@@ -11,9 +13,17 @@ Field :: struct {
     cows: [dynamic]Cow,
 }
 
+CowState :: enum u8 { Idle, Move }
+
 Cow :: struct {
     pos: rl.Vector2,
     angle: f32,
+
+    hop_offset: f32,
+    direction: rl.Vector2,
+
+    state: CowState,
+    state_timer: f32,
 }
 
 init :: proc() {
@@ -27,11 +37,35 @@ deinit :: proc() {
 
 update :: proc(dt: f32, cursor: rl.Vector2) {
     if !ngui.want_mouse() && rl.IsMouseButtonPressed(.LEFT) {
-        append(&field.cows, Cow{pos = cursor})
+        append(&field.cows, Cow{pos = cursor, direction = rand_direction()})
     }
 
     for &cow in field.cows {
-        cow.angle += dt * linalg.TAU
+        if rand.float32() > 0.999 {
+            cow.direction = rand_direction()
+        }
+
+        cow.state_timer -= dt
+        switch cow.state {
+        case .Idle:
+            if cow.state_timer <= 0 {
+                cow.state = .Move
+                cow.state_timer = 3
+            }
+        case .Move:
+            cow.pos += 5 * cow.direction * dt
+
+            // TODO: pingpong in range.
+            if cow.hop_offset >= 10 do cow.hop_offset -= 10*dt
+            else                    do cow.hop_offset += 10*dt
+
+            if cow.state_timer <= 0 {
+                cow.state = .Idle
+                cow.state_timer = 3
+            }
+        }
+
+        // cow.angle += linalg.TAU * dt
     }
 }
 
@@ -42,15 +76,26 @@ draw :: proc() {
     rl.DrawRectangleV(-0.5 * FIELD_SIZE, FIELD_SIZE, rl.GREEN)
 
     for cow in field.cows {
-        // rl.DrawTextureEx(cow_texture, cow.pos - 64, cow.angle, 1, rl.WHITE)
         SIZE :: 128
         pos := cow.pos - SIZE/2
 
         midpoint := rl.Rectangle{
             pos.x + SIZE/2,
-            pos.y + SIZE/2,
+            pos.y + cow.hop_offset + SIZE/2,
             SIZE, SIZE,
         }
-        rl.DrawTexturePro(cow_texture, {0, 0, SIZE, SIZE}, midpoint, SIZE/2, cow.angle, rl.WHITE)
+
+        width: f32 = SIZE if cow.direction.x < 0 else -SIZE
+        source := rl.Rectangle{0, 0, width, SIZE}
+
+        rl.DrawTexturePro(cow_texture, source, midpoint, SIZE/2, cow.angle, rl.WHITE)
     }
+}
+
+rand_direction :: proc() -> (dir: rl.Vector2) {
+    dir = {
+        rand.float32_range(-1, 1),
+        rand.float32_range(-1, 1),
+    }
+    return linalg.normalize(dir)
 }
